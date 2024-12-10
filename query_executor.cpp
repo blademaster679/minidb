@@ -6,7 +6,7 @@
 void QueryExecutor::executeSelect(const SelectCommand& cmd) {
     // 读取数据
     DatabaseManager dbManager;
-    std::vector<std::vector<std::string>> result = dbManager.fetchData(cmd.tableName);  // 获取表数据
+    std::vector<std::vector<std::string>> result = dbManager.readFromFile(cmd.tableName);  // 获取表数据
 
     // 输出查询结果（通过 OutputFormatter 转为 CSV 格式）
     OutputFormatter::formatOutputToCSV(result, "output.csv");

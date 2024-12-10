@@ -81,9 +81,9 @@ std::string DatabaseManager::getTablePath(const std::string &table_name) const{
 }
 
 //读取表数据
-std::vector<std::vector<std::string>> DatabaseManager::readFromFile(const std::string& tableName) const{
+std::vector<std::vector<std::string>> DatabaseManager::readFromFile(const std::string& tableName) {
     std::vector<std::vector<std::string>> data;
-    std::ifstream file(getTablePath(tableName));
+    std::ifstream file(getTablePath(tableName));  // 获取表路径
 
     if (!file) {
         throw std::runtime_error("Failed to open table file: " + tableName);
@@ -150,8 +150,8 @@ void DatabaseManager::updateData(const std::string& tableName, const std::string
 }
 
 //写入数据
-void DatabaseManager::writeToFile(const std::string& tableName, const std::vector<std::vector<std::string>>& data) const{
-    std::ofstream file(getTablePath(tableName), std::ofstream::trunc);
+void DatabaseManager::writeToFile(const std::string& tableName, const std::vector<std::vector<std::string>>& data) {
+    std::ofstream file(getTablePath(tableName), std::ofstream::trunc);  // 获取表路径
 
     if (!file) {
         throw std::runtime_error("Failed to open table file for writing: " + tableName);
