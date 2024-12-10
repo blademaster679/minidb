@@ -171,3 +171,26 @@ Condition SQLParser::parseCondition(const std::string& condition){
     condition_group.value = DeleteSpaces(condition_group.value);
     return condition_group;
 }
+
+//解析更新命令
+std::map<std::string, std::string> SQLParser::parseUpdateSet(const std::string& setClause) {
+    std::map<std::string, std::string> updates;
+    std::stringstream ss(setClause);
+    std::string part;
+
+    // 格式：SET column1 = value1, column2 = value2, ...
+    while (std::getline(ss, part, ',')) {
+        std::stringstream partStream(part);
+        std::string column, value;
+        std::getline(partStream, column, '=');
+        std::getline(partStream, value);
+
+        // 去除两端的空白字符
+        column = DeleteSpaces(column);
+        value = DeleteSpaces(value);
+
+        updates[column] = value;
+    }
+
+    return updates;
+}

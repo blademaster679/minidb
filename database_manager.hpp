@@ -12,7 +12,7 @@ public:
     void createTable(const std::string &table_name, const std::vector<std::pair<std::string, std::string>> &columns);
     void dropTable(const std::string &table_name);
     std::string getCurrentDatabase() const;
-    std::vector<std::vector<std::string>> fetchData(const std::string &table_name) const;
+    // std::vector<std::vector<std::string>> fetchData(const std::string &table_name) const;
     void insertData(const InsertCommand &insert_cmd);
     void updateData(const std::string &table_name, const std::string &set_clause, const std::string &where_clause);
     void deleteData(const std::string &table_name, const std::string &where_clause);
@@ -23,5 +23,8 @@ private:
     std::string getTablePath(const std::string &table_name) const;
     bool databaseExists(const std::string &db_name) const;
     bool tableExists(const std::string &table_name) const;
+    void writeToFile(const std::string& table_name, const std::vector<std::vector<std::string>>& data) const;
+    std::vector<std::vector<std::string>> readFromFile(const std::string& table_name) const;
+    bool checkCondition(const std::vector<std::string> &row, const std::string& column_name, const std::string& value) const;
 };
 #endif

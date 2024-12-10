@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <sstream>
+#include <map>
 
 struct CreateDatabaseCommand{
     std::string databaseName;
@@ -54,5 +56,6 @@ public:
     static std::vector<std::string> parseWhereClause(const std::string& sql_command);
     static Condition parseCondition(const std::string& condition);
     static void parseJoinClause(const std::string& sql_command, SelectCommand& sel_command);
+    static std::map<std::string, std::string> parseUpdateSet(const std::string& setClause);
 };
 #endif
