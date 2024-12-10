@@ -3,11 +3,11 @@
 #include <string>
 #include <sstream>
 #include <vector>
-#include "sql_parser.h"
-#include "database_manager.h"
-#include "query_executor.h"
-#include "output_formatter.h"
-#include "error_reporter.h"
+#include "sql_parser.hpp"
+#include "database_manager.hpp"
+#include "query_executor.hpp"
+#include "output_formatter.hpp"
+#include "error_reporter.hpp"
 
 using namespace std;
 
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
                 } else if (command == "TABLE") {
                     // 解析 CREATE TABLE 命令
                     CreateTableCommand tableCmd = SQLParser::parseCreateTable(line);
-                    dbManager.createTable(tableCmd);
+                    dbManager.createTable(tableCmd.tableName, tableCmd.columns);
                     cout << "Table " << tableCmd.tableName << " created." << endl;
                 } else {
                     throw runtime_error("Invalid CREATE command.");
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
                 SelectCommand selectCmd = SQLParser::parseSelect(line);
                 vector<vector<string>> result;
                 queryExecutor.executeSelect(selectCmd);
-                OutputFormatter::formatOutput(result, output);
+                OutputFormatter::formatOutputToCSV(result, outputFile);
                 cout << "Query executed: SELECT ..." << endl;
             } else if (command == "UPDATE") {
                 // 解析 UPDATE 命令

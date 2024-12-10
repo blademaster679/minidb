@@ -117,6 +117,17 @@ std::vector<std::string> SQLParser::parseWhereClause(const std::string& sql_comm
     return conditions;
 }
 
+//解析where子句(update)
+void SQLParser::parseWhereClause(const std::string& whereClause, std::string& columnName, std::string& value) {
+    // 假设我们处理一个简单的条件：WHERE column = value
+    std::stringstream ss(whereClause);
+    std::string column, eq, val;
+    ss >> column >> eq >> val;
+
+    columnName = column;
+    value = val;
+}
+
 //解析join子句
 void SQLParser::parseJoinClause(const std::string& sql_command, SelectCommand& table_name){
     std::istringstream stream(sql_command);

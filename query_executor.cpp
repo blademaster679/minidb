@@ -1,5 +1,6 @@
-#include "query_executor.h"
-#include "database_manager.h"
+#include "query_executor.hpp"
+#include "database_manager.hpp"
+#include "output_formatter.hpp"
 #include <iostream>
 
 // 执行 SELECT 查询

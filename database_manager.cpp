@@ -1,5 +1,6 @@
 #include "database_manager.hpp"
 #include <iostream>
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -81,7 +82,7 @@ std::string DatabaseManager::getTablePath(const std::string &table_name) const{
 }
 
 //读取表数据
-std::vector<std::vector<std::string>> DatabaseManager::readFromFile(const std::string& tableName) {
+std::vector<std::vector<std::string>> DatabaseManager::readFromFile(const std::string& tableName) const{
     std::vector<std::vector<std::string>> data;
     std::ifstream file(getTablePath(tableName));  // 获取表路径
 
@@ -150,7 +151,7 @@ void DatabaseManager::updateData(const std::string& tableName, const std::string
 }
 
 //写入数据
-void DatabaseManager::writeToFile(const std::string& tableName, const std::vector<std::vector<std::string>>& data) {
+void DatabaseManager::writeToFile(const std::string& tableName, const std::vector<std::vector<std::string>>& data) const{
     std::ofstream file(getTablePath(tableName), std::ofstream::trunc);  // 获取表路径
 
     if (!file) {

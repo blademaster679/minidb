@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <stdexcept>
-#include "sql_parser.h"
+#include "sql_parser.hpp"
 
 class DatabaseManager{
 public:
@@ -16,6 +16,7 @@ public:
     void insertData(const InsertCommand &insert_cmd);
     void updateData(const std::string &table_name, const std::string &set_clause, const std::string &where_clause);
     void deleteData(const std::string &table_name, const std::string &where_clause);
+    std::vector<std::vector<std::string>> readFromFile(const std::string& table_name) const;
 private:
     std::string current_database;
     std::vector<std::string> databases;
@@ -24,7 +25,6 @@ private:
     bool databaseExists(const std::string &db_name) const;
     bool tableExists(const std::string &table_name) const;
     void writeToFile(const std::string& table_name, const std::vector<std::vector<std::string>>& data) const;
-    std::vector<std::vector<std::string>> readFromFile(const std::string& table_name) const;
     bool checkCondition(const std::vector<std::string> &row, const std::string& column_name, const std::string& value) const;
 };
 #endif

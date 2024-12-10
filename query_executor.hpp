@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include "sql_parser.h"  // 用于 SQL 解析
+#include "sql_parser.hpp"  // 用于 SQL 解析
 
 class QueryExecutor {
 public:

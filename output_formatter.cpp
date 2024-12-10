@@ -1,4 +1,4 @@
-#include "output_formatter.h"
+#include "output_formatter.hpp"
 #include <iostream>
 #include <fstream>
 

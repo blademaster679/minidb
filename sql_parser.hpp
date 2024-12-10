@@ -57,5 +57,6 @@ public:
     static Condition parseCondition(const std::string& condition);
     static void parseJoinClause(const std::string& sql_command, SelectCommand& sel_command);
     static std::map<std::string, std::string> parseUpdateSet(const std::string& setClause);
+    static void parseWhereClause(const std::string& whereClause, std::string& columnName, std::string& value);
 };
 #endif
