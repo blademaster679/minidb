@@ -70,7 +70,7 @@ std::string DatabaseManager::getCurrentDatabase() const{
 
 //获取数据库路径
 std::string DatabaseManager::getDatabasePath(const std::string &db_name) const{
-    return "databases/" + db_name;
+    return "../databases/" + db_name;
 }
 
 //获取表路径
