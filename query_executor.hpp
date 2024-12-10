@@ -8,7 +8,7 @@
 class QueryExecutor {
 public:
     // 执行 SELECT 查询
-    void executeSelect(const SelectCommand& cmd);
+    void executeSelect(const SelectCommand& cmd, const std::string& outputFile);
 
     // 执行 INSERT 查询
     void executeInsert(const InsertCommand& insertCmd);

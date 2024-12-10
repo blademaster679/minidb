@@ -1,0 +1,1 @@
+/usr/bin/c++  -g CMakeFiles/minidb.dir/main.cpp.o CMakeFiles/minidb.dir/database_manager.cpp.o CMakeFiles/minidb.dir/error_reporter.cpp.o CMakeFiles/minidb.dir/output_formatter.cpp.o CMakeFiles/minidb.dir/sql_parser.cpp.o CMakeFiles/minidb.dir/query_executor.cpp.o -o minidb 

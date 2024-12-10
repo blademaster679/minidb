@@ -30,25 +30,35 @@ void DatabaseManager::useDatabase(const std::string &db_name){
 }
 
 //创建表
-void DatabaseManager::createTable(const std::string &table_name, const std::vector<std::pair<std::string, std::string>> &columms){
+void DatabaseManager::createTable(const std::string &table_name, const std::vector<std::pair<std::string, std::string>> &columns){
     if (current_database.empty()){
         throw std::runtime_error("No database selected.");
     }
     std::string table_path = getTablePath(table_name);
     if (tableExists(table_name)){
-        throw std::runtime_error("Table already exists:"+table_name);
+        throw std::runtime_error("Table already exists:" + table_name);
     }
     std::ofstream table_file(table_path);
     if (!table_file){
         throw std::runtime_error("Failed to create table file:" + table_name);
     }
-    table_file << "Table:" << table_name << "\n";
-    table_file << "Columns:\n";
-    for (const auto &column : columms){
+    table_file << columns.size() << "\n";  // 记录列的数量
+    for (const auto &column : columns){
         table_file << column.first << " " << column.second << "\n";
     }
     table_file.close();
     std::cout << "Table: " << table_name << " created successfully in database:" << current_database << std::endl;
+
+    // 将列信息和数量保存到元数据映射中
+    TableMetadata metadata;
+    metadata.columnCount = columns.size();
+    for (const auto &column : columns){
+        ColumnInfo colInfo;
+        colInfo.name = column.first;
+        colInfo.type = column.second;
+        metadata.columns.push_back(colInfo);
+    }
+    tableMetadataMap[table_name] = metadata;
 }
 
 //删除表
@@ -108,9 +118,13 @@ std::vector<std::vector<std::string>> DatabaseManager::readFromFile(const std::s
 
 //插入数据
 void DatabaseManager::insertData(const InsertCommand& insertCmd) {
+    std::cout << "hhhhhhhhhhhhhhhhhhh" << std::endl;
     std::vector<std::vector<std::string>> data = readFromFile(insertCmd.tableName);
+    std::cout << "hhhhhhhhhhhhhhhhhhh" << std::endl;
     data.push_back(insertCmd.values);
+    std::cout << "hhhhhhhhhhhhhhhhhhh" << std::endl;
     writeToFile(insertCmd.tableName, data);
+    std::cout << "hhhhhhhhhhhhhhhhhhh" << std::endl;
     std::cout << "Data inserted into table '" << insertCmd.tableName << "'." << std::endl;
 }
 
@@ -162,12 +176,16 @@ void DatabaseManager::writeToFile(const std::string& tableName, const std::vecto
     for (const auto& row : data) {
         for (size_t i = 0; i < row.size(); ++i) {
             file << row[i];
+            std::cout << row[i] << " ";
             if (i != row.size() - 1) {
                 file << ",";  // 添加逗号分隔符
+                std::cout << ", ";
+                std::cout << "dsfynuhufhhauh";
             }
         }
         file << "\n";
     }
+    std::cout << "hsdfbshdnfdnf";
 
     file.close();
 }

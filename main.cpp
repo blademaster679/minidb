@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
     }
 
     // 初始化模块
-    DatabaseManager& dbManager = DatabaseManager::getInstance();
+    DatabaseManager &dbManager = DatabaseManager::getInstance();
     QueryExecutor queryExecutor;
 
     string line;
@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
     while (getline(sqlFile, line))
     {
         lineNumber++;
+        std::cout << lineNumber << std::endl;
         stringstream ss(line);
         string command;
         cout << "Line " << lineNumber << ": " << line << endl;
@@ -60,7 +61,7 @@ int main(int argc, char *argv[])
         }
 
         ss >> command;
-
+        std::cout << "Command: " << command << std::endl;//调试输出
         try
         {
             // 解析并执行SQL命令
@@ -71,6 +72,10 @@ int main(int argc, char *argv[])
                 {
                     string dbName;
                     ss >> dbName;
+                    if (!dbName.empty() && dbName[dbName.size() - 1] == ';')
+                    {
+                        dbName.erase(dbName.size() - 1); // 删除最后一个字符
+                    }
                     dbManager.createDatabase(dbName);
                     cout << "Database " << dbName << " created." << endl;
                 }
@@ -88,6 +93,7 @@ int main(int argc, char *argv[])
                         if (line.find(')') != string::npos) // 如果遇到右括号，则结束
                         {
                             insideCreateTable = false;
+                            break;
                         }
                     }
 
@@ -111,7 +117,11 @@ int main(int argc, char *argv[])
                 }
 
                 string dbName;
-                ss >> dbName;                  // 提取数据库名称
+                ss >> dbName; // 提取数据库名称
+                if (!dbName.empty() && dbName[dbName.size() - 1] == ';')
+                {
+                    dbName.erase(dbName.size() - 1); // 删除最后一个字符
+                }
                 dbManager.useDatabase(dbName); // 设置当前数据库
                 cout << "Using database " << dbName << "." << endl;
             }
@@ -119,16 +129,16 @@ int main(int argc, char *argv[])
             else if (command == "INSERT")
             {
                 // 解析 INSERT 命令
-                SQLParser::parseInsert(line);
+                InsertCommand insertCmd = SQLParser::parseInsert(line);
+                queryExecutor.executeInsert(insertCmd);
                 cout << "Insert command processed." << endl;
             }
             else if (command == "SELECT")
             {
                 // 解析 SELECT 命令
                 SelectCommand selectCmd = SQLParser::parseSelect(line);
-
                 // 执行查询并将结果写入 CSV 文件
-                queryExecutor.executeSelect(selectCmd);
+                queryExecutor.executeSelect(selectCmd,outputFile);
                 cout << "Select command processed." << endl;
             }
 

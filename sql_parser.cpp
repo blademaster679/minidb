@@ -55,44 +55,41 @@ CreateTableCommand SQLParser::parseCreateTable(const std::string &sql_command)
     std::istringstream stream(sql_command);
     std::string command, table_name, column_name, column_type;
     char c;
+    std::vector<std::pair<std::string, std::string>> columns;
 
     // 读取 CREATE TABLE 和表名
     stream >> command >> command >> table_name;
-
-    // 确保 table_name 被正确读取
     if (table_name.empty())
     {
         throw std::runtime_error("Error: Invalid SQL command: missing table name.");
     }
-
     std::cout << "Parsing CREATE TABLE for table: " << table_name << std::endl; // 调试输出
-
-    // 跳过左括号 '('
-    stream >> c;
-    if (c != '(')
-    {
-        throw std::runtime_error("Error: Invalid SQL command: expected '(' after table name.");
-    }
-
-    std::vector<std::pair<std::string, std::string>> columns;
+    stream >> c;                                                                // 跳过左括号 '('
 
     // 解析列定义
-    while (stream >> column_name >> column_type)
+    while (stream >> column_name)
     {
-        // 删除列名和类型两端的空格
+        // 删除列名两端的空格
         column_name = DeleteSpaces(column_name);
-        column_type = DeleteSpaces(column_type);
 
-        std::cout << "Column: " << column_name << ", Type: " << column_type << std::endl; // 调试输出
-
-        columns.push_back({column_name, column_type});
-
-        // 跳过逗号或右括号
-        stream >> c;
-        if (c == ')')
+        // 如果列名解析完毕，接着读取列类型
+        if (stream >> column_type)
         {
-            break; // 如果遇到右括号，则结束循环
+            column_type = DeleteSpaces(column_type);
+            std::cout << "Column: " << column_name << ", Type: " << column_type << std::endl; // 调试输出
+            columns.push_back({column_name, column_type});
         }
+        char nextChar = stream.peek(); // 查看下一个字符
+        if (nextChar == ')')
+        {
+            break;
+        }
+        // 读取逗号或右括号
+        // stream >> c;
+        // std::cout << "Next character: " << c << std::endl;  // 调试输出
+        // if (c == ')') {
+        //     break;  // 如果遇到右括号，则结束循环
+        // }
     }
 
     // 返回包含表名和列信息的创建表命令
@@ -132,6 +129,7 @@ InsertCommand SQLParser::parseInsert(const std::string &sql_command)
     {
         values.push_back(DeleteSpaces(value));
     }
+    std::cout << table_name << "  " << value << std::endl; // 调试输出
     return InsertCommand{DeleteSpaces(table_name), values};
 }
 
@@ -139,21 +137,59 @@ InsertCommand SQLParser::parseInsert(const std::string &sql_command)
 SelectCommand SQLParser::parseSelect(const std::string &sql_command)
 {
     std::istringstream stream(sql_command);
-    std::string command, table_name, joinTable, onCondition, whereClause;
+    std::string command, column_name, table_name, joinTable, onCondition, whereClause, fromKeyword;
     char c;
+    std::vector<std::string> columns;
+
+    // 读取 SELECT 关键字
     stream >> command;
-    std::string columns;                        // 解析所有列名
-    std::getline(stream, columns, ',');         // 以逗号分隔
-    std::istringstream columns_stream(columns); // 对于所有列名进行处理，将其分为一个个列名
-    std::vector<std::string> columns_vector;
-    std::string column;
-    while (std::getline(columns_stream, column, ','))
+    if (command != "SELECT")
     {
-        columns_vector.push_back(DeleteSpaces(column)); // 将一个个列名存入vector
+        throw std::runtime_error("Error: Invalid SQL command. Expected 'SELECT'.");
     }
-    stream >> command;
+
+    // 解析列名，直到遇到 FROM 关键字
+    while (stream >> column_name)
+    {
+        if (column_name == "FROM")
+        {
+            break; // 跳出循环，准备解析表名
+        }
+        column_name = DeleteSpaces(column_name); // 去除列名两端的空格
+        columns.push_back(column_name);
+
+        // 读取逗号或空格，确保正确处理多个列名
+        while (stream.peek() == ' ' || stream.peek() == ',')
+        {
+            stream.ignore(); // 跳过空格或逗号
+        }
+    }
+
+    if (column_name != "FROM")
+    {
+        throw std::runtime_error("Error: Expected 'FROM' after columns.");
+    }
+
+    // 读取表名
     stream >> table_name;
-    SelectCommand cmd{DeleteSpaces(table_name), columns_vector, ""};
+    if (!table_name.empty() && table_name[table_name.size() - 1] == ';')
+    {
+        table_name.erase(table_name.size() - 1); // 删除最后一个字符
+    }
+    table_name = DeleteSpaces(table_name); // 去除表名两端的空格
+
+    // std::string columns;                        // 解析所有列名
+    // std::getline(stream, columns, ',');         // 以逗号分隔
+    // std::istringstream columns_stream(columns); // 对于所有列名进行处理，将其分为一个个列名
+    // std::vector<std::string> columns_vector;
+    // std::string column;
+    // while (std::getline(columns_stream, column, ','))
+    // {
+    //     columns_vector.push_back(DeleteSpaces(column)); // 将一个个列名存入vector
+    // }
+    // stream >> command;
+    // stream >> table_name;
+    SelectCommand cmd{DeleteSpaces(table_name), columns, ""};
     parseJoinClause(sql_command, cmd); // 解析join子句
     // std::vector<Join> joins = parseJoinClause(sql_command);//解析join子句
 
@@ -168,7 +204,7 @@ SelectCommand SQLParser::parseSelect(const std::string &sql_command)
         cmd.whereClause = whereClause;
         cmd.whereConditions = parseWhereClause(whereClause);
     }
-    return SelectCommand{DeleteSpaces(table_name), columns_vector, whereClause, cmd.whereConditions, joinTable, onCondition};
+    return SelectCommand{DeleteSpaces(table_name), columns, whereClause, cmd.whereConditions, joinTable, onCondition};
 }
 
 // 解析where子句

@@ -1,0 +1,3 @@
+/home/blade_master/minidb/build/CMakeFiles/minidb.dir
+/home/blade_master/minidb/build/CMakeFiles/edit_cache.dir
+/home/blade_master/minidb/build/CMakeFiles/rebuild_cache.dir
