@@ -43,4 +43,5 @@ private:
     void writeToFile(const std::string& table_name, const std::vector<std::vector<std::string>>& data) const;
     bool checkCondition(const std::vector<std::string> &row, const std::string& column_name, const std::string& value) const;
 };
+extern DatabaseManager* instance;
 #endif

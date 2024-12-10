@@ -7,6 +7,7 @@
 #include <filesystem>
 
 namespace fs = std::filesystem;
+DatabaseManager* DatabaseManager::instance = nullptr;
 
 //创建数据库
 void DatabaseManager::createDatabase(const std::string &db_name){
