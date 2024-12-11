@@ -26,6 +26,7 @@ public:
     void dropTable(const std::string &table_name);
     std::string getCurrentDatabase() const;
     std::string getDatabasePath(const std::string &db_name) const;
+    bool checkCondition(const std::vector<std::string> &row, const std::string &columnName, const std::string &value) const;
     // std::vector<std::vector<std::string>> fetchData(const std::string &table_name) const;
     void insertData(const InsertCommand &insert_cmd);
     void updateData(const std::string &table_name, const std::string &set_clause, const std::string &where_clause);
@@ -52,7 +53,6 @@ private:
     bool databaseExists(const std::string &db_name) const;
     bool tableExists(const std::string &table_name) const;
     void writeToFile(const std::string& table_name, const std::vector<std::vector<std::string>>& data) const;
-    bool checkCondition(const std::vector<std::string> &row, const std::string& column_name, const std::string& value) const;
     std::unordered_map<std::string, TableMetadata> tableMetadataMap;};
 extern DatabaseManager* instance;
 #endif

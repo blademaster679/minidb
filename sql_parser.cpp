@@ -6,17 +6,31 @@
 #include <cctype>
 #include <iterator>
 
-// 去除字符串中的空格和制表符
-static std::string DeleteSpaces(const std::string &str)
-{
-    size_t first = str.find_first_not_of(" \t");
-    size_t last = str.find_last_not_of(" \t");
 
-    if (first == std::string::npos)
-        return "";                              // 如果没有找到非空字符
-    return str.substr(first, last - first + 1); // 返回去除空格后的字符串
+// 去除字符串中的空格和制表符
+static std::string DeleteSpaces(const std::string &str) {
+    std::string result = str;
+    result.erase(std::remove(result.begin(), result.end(), ' '), result.end());
+    result.erase(std::remove(result.begin(), result.end(), '\t'), result.end());
+    return result;
 }
 
+
+std::vector<std::string> split(const std::string& s, const std::string& delimiter) {
+    std::vector<std::string> tokens;
+    size_t pos_start = 0, pos_end;
+    std::string token;
+    while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
+        token = s.substr(pos_start, pos_end - pos_start);
+        DeleteSpaces(token);
+        tokens.push_back(token);
+        pos_start = pos_end + delimiter.length();
+    }
+    token = s.substr(pos_start);
+    DeleteSpaces(token);
+    tokens.push_back(token);
+    return tokens;
+}
 // static std::string DeleteSpaces(const std::string &str)
 // {
 //     size_t start = str.find_first_not_of(" \t");
@@ -133,98 +147,80 @@ InsertCommand SQLParser::parseInsert(const std::string &sql_command)
     return InsertCommand{DeleteSpaces(table_name), values};
 }
 
-// 解析查询命令
-SelectCommand SQLParser::parseSelect(const std::string &sql_command)
-{
-    std::istringstream stream(sql_command);
-    std::string command, column_name, table_name, joinTable, onCondition, whereClause, fromKeyword;
-    char c;
-    std::vector<std::string> columns;
+// 实现 parseWhereConditions 函数
+std::vector<Condition> SQLParser::parseWhereConditions(const std::string& whereClause) {
+    std::vector<Condition> conditions;
 
-    // 读取 SELECT 关键字
-    stream >> command;
-    if (command != "SELECT")
-    {
-        throw std::runtime_error("Error: Invalid SQL command. Expected 'SELECT'.");
+    // 按照 "AND" 分割条件
+    std::vector<std::string> conditionStrings = split(whereClause, "AND");
+    for (const auto& condition : conditionStrings) {
+        std::cout << "Condition string: " << condition << std::endl;
     }
 
-    // 解析列名，直到遇到 FROM 关键字
-    while (stream >> column_name)
-    {
-        if (column_name == "FROM")
-        {
-            break; // 跳出循环，准备解析表名
-        }
-        column_name = DeleteSpaces(column_name); // 去除列名两端的空格
-        columns.push_back(column_name);
-
-        // 读取逗号或空格，确保正确处理多个列名
-        while (stream.peek() == ' ' || stream.peek() == ',')
-        {
-            stream.ignore(); // 跳过空格或逗号
-        }
+    for (const auto& condStr : conditionStrings) {
+        Condition cond = parseCondition(condStr);
+        cond.column = DeleteSpaces(cond.column);
+        cond.value = DeleteSpaces(cond.value);
+        conditions.push_back(cond);
     }
-
-    if (column_name != "FROM")
-    {
-        throw std::runtime_error("Error: Expected 'FROM' after columns.");
-    }
-
-    // 读取表名
-    stream >> table_name;
-    if (!table_name.empty() && table_name[table_name.size() - 1] == ';')
-    {
-        table_name.erase(table_name.size() - 1); // 删除最后一个字符
-    }
-    table_name = DeleteSpaces(table_name); // 去除表名两端的空格
-
-    // std::string columns;                        // 解析所有列名
-    // std::getline(stream, columns, ',');         // 以逗号分隔
-    // std::istringstream columns_stream(columns); // 对于所有列名进行处理，将其分为一个个列名
-    // std::vector<std::string> columns_vector;
-    // std::string column;
-    // while (std::getline(columns_stream, column, ','))
-    // {
-    //     columns_vector.push_back(DeleteSpaces(column)); // 将一个个列名存入vector
-    // }
-    // stream >> command;
-    // stream >> table_name;
-    SelectCommand cmd{DeleteSpaces(table_name), columns, ""};
-    parseJoinClause(sql_command, cmd); // 解析join子句
-    // std::vector<Join> joins = parseJoinClause(sql_command);//解析join子句
-
-    std::getline(stream, whereClause); // 解析where子句
-    whereClause = DeleteSpaces(whereClause);
-    if (whereClause.find("WHERE") == std::string::npos)
-    {
-        whereClause = ""; // 如果没有where子句，将其置为空
-    }
-    if (whereClause.find("WHERE") != std::string::npos)
-    {
-        cmd.whereClause = whereClause;
-        cmd.whereConditions = parseWhereClause(whereClause);
-    }
-    return SelectCommand{DeleteSpaces(table_name), columns, whereClause, cmd.whereConditions, joinTable, onCondition};
-}
-
-// 解析where子句
-std::vector<std::string> SQLParser::parseWhereClause(const std::string &sql_command)
-{
-    std::string whereClause = DeleteSpaces(sql_command);
-    std::vector<std::string> conditions;
-    if (whereClause.find("WHERE") != std::string::npos)
-    {
-        whereClause = whereClause.substr(whereClause.find("WHERE") + 5);
-        std::istringstream stream(whereClause);
-        std::string condition;
-        while (std::getline(stream, condition, ' '))
-        {
-            condition = DeleteSpaces(condition);
-            conditions.push_back(condition);
-        }
+    for (const auto& condition : conditions) {
+        std::cout << "Column: " << condition.column << ", Operator: " << condition.op << ", Value: " << condition.value << std::endl;
     }
     return conditions;
 }
+// 解析查询命令
+SelectCommand SQLParser::parseSelect(const std::string& sql_command) {
+    SelectCommand selectCmd;
+    std::stringstream ss(sql_command);
+    std::string token;
+
+    ss >> token; // 跳过 "SELECT"
+    // 解析列名
+    std::getline(ss, token, 'F'); // 读取到 "FROM" 为止
+    DeleteSpaces(token);
+    selectCmd.columns = split(token, ",");
+
+    // 解析 FROM
+    ss >> token; // 应该是 "ROM" 的剩余部分
+    ss >> selectCmd.tableName;
+    std::cout << "Table name: " << selectCmd.tableName << std::endl; // 调试输出
+    if (!selectCmd.tableName.empty() && selectCmd.tableName.back() == ';') {
+        selectCmd.tableName.pop_back();  // 删除最后一个字符
+    }
+    std::cout << "Table name: " << selectCmd.tableName << std::endl; // 调试输出
+    // 检查是否有 WHERE 子句
+    ss >> token;
+    std::cout << "Token: " << token << std::endl; // 调试输出
+    if (token == "WHERE") {
+        std::string whereClause;
+        std::getline(ss, whereClause, ';'); // 读取 WHERE 子句直到分号
+        DeleteSpaces(whereClause);
+        std::cout << "Where clause: " << whereClause << std::endl; // 调试输出
+
+        // 将 WHERE 子句解析为条件对象列表
+        selectCmd.whereConditions = parseWhereConditions(whereClause);
+    } else {
+        // 如果没有 WHERE，将读取的 token 回退
+        ss.putback(' ');
+        for (int i = token.length() - 1; i >= 0; --i) {
+            ss.putback(token[i]);
+        }
+    }
+
+    return selectCmd;
+}
+
+//     std::vector<Condition> SQLParser::parseWhereConditions(const std::string& whereClause) {
+//     std::vector<Condition> conditions;
+//     std::vector<std::string> conditionStrings = split(whereClause, "AND");
+
+//     for (const auto& condStr : conditionStrings) {
+//         Condition cond = parseCondition(condStr);
+//         conditions.push_back(cond);
+//     }
+
+//     return conditions;
+// }
 
 // 解析where子句(update)
 void SQLParser::parseWhereClause(const std::string &whereClause, std::string &columnName, std::string &value)
@@ -264,42 +260,64 @@ void SQLParser::parseJoinClause(const std::string &sql_command, SelectCommand &t
 }
 
 // 解析条件
-Condition SQLParser::parseCondition(const std::string &condition)
-{
-    Condition condition_group;
-    std::string no_space_condition = DeleteSpaces(condition);
-    if (no_space_condition.find(">") != std::string::npos)
-    {
-        size_t pos = no_space_condition.find(">");
-        condition_group.op = ">";
-        condition_group.column = no_space_condition.substr(0, pos);
-        condition_group.value = no_space_condition.substr(pos + 1);
+    Condition SQLParser::parseCondition(const std::string& conditionStr) {
+    Condition condition;
+    std::string str = DeleteSpaces(conditionStr);
+    std::cout << "Condition stringhhhhhh: " << str << std::endl; // 调试输出
+    std::vector<std::string> operators = {">", "<", "=", "!="};
+    for (const auto& op : operators) {
+        size_t pos = str.find(op);
+        if (pos != std::string::npos) {
+            condition.op = op;
+            condition.column = str.substr(0, pos);
+            condition.value = str.substr(pos + op.length());
+            break;
+        }
     }
-    else if (no_space_condition.find("<") != std::string::npos)
-    {
-        size_t pos = no_space_condition.find("<");
-        condition_group.op = "<";
-        condition_group.column = no_space_condition.substr(0, pos);
-        condition_group.value = no_space_condition.substr(pos + 1);
-    }
-    else if (no_space_condition.find("=") != std::string::npos)
-    {
-        size_t pos = no_space_condition.find("=");
-        condition_group.op = "=";
-        condition_group.column = no_space_condition.substr(0, pos);
-        condition_group.value = no_space_condition.substr(pos + 1);
-    }
-    else if (no_space_condition.find("!=") != std::string::npos)
-    {
-        size_t pos = no_space_condition.find("!=");
-        condition_group.op = "!=";
-        condition_group.column = no_space_condition.substr(0, pos);
-        condition_group.value = no_space_condition.substr(pos + 2);
-    }
-    condition_group.column = DeleteSpaces(condition_group.column);
-    condition_group.value = DeleteSpaces(condition_group.value);
-    return condition_group;
+    // std::stringstream ss(str);
+    // ss >> condition.column >> condition.op >> condition.value;
+
+    // 去除可能的引号
+    condition.value.erase(remove(condition.value.begin(), condition.value.end(), '\''), condition.value.end());
+
+    return condition;
 }
+// Condition SQLParser::parseCondition(const std::string &condition)
+// {
+//     Condition condition_group;
+//     std::string no_space_condition = DeleteSpaces(condition);
+//     if (no_space_condition.find(">") != std::string::npos)
+//     {
+//         size_t pos = no_space_condition.find(">");
+//         condition_group.op = ">";
+//         condition_group.column = no_space_condition.substr(0, pos);
+//         condition_group.value = no_space_condition.substr(pos + 1);
+//     }
+//     else if (no_space_condition.find("<") != std::string::npos)
+//     {
+//         size_t pos = no_space_condition.find("<");
+//         condition_group.op = "<";
+//         condition_group.column = no_space_condition.substr(0, pos);
+//         condition_group.value = no_space_condition.substr(pos + 1);
+//     }
+//     else if (no_space_condition.find("=") != std::string::npos)
+//     {
+//         size_t pos = no_space_condition.find("=");
+//         condition_group.op = "=";
+//         condition_group.column = no_space_condition.substr(0, pos);
+//         condition_group.value = no_space_condition.substr(pos + 1);
+//     }
+//     else if (no_space_condition.find("!=") != std::string::npos)
+//     {
+//         size_t pos = no_space_condition.find("!=");
+//         condition_group.op = "!=";
+//         condition_group.column = no_space_condition.substr(0, pos);
+//         condition_group.value = no_space_condition.substr(pos + 2);
+//     }
+//     condition_group.column = DeleteSpaces(condition_group.column);
+//     condition_group.value = DeleteSpaces(condition_group.value);
+//     return condition_group;
+// }
 
 // 解析更新命令
 std::map<std::string, std::string> SQLParser::parseUpdateSet(const std::string &setClause)

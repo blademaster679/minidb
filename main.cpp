@@ -137,9 +137,19 @@ int main(int argc, char *argv[])
             {
                 // 解析 SELECT 命令
                 SelectCommand selectCmd = SQLParser::parseSelect(line);
-                // 执行查询并将结果写入 CSV 文件
-                queryExecutor.executeSelect(selectCmd,outputFile);
-                cout << "Select command processed." << endl;
+                std::cout << "Select command parsed." << selectCmd.tableName << std::endl;//调试输出
+                // 根据是否有 WHERE 子句判断执行方式
+                if (!selectCmd.whereConditions.empty()) {
+                    // 如果有 WHERE 子句，执行带条件的查询
+                    std::cout << "Executing SELECT with WHERE clause..." << std::endl;
+                } else {
+                    // 如果没有 WHERE 子句，执行普通查询
+                    std::cout << "Executing SELECT without WHERE clause..." << std::endl;
+                }
+
+                // 执行查询并输出到文件
+                queryExecutor.executeSelect(selectCmd, outputFile);
+                std::cout << "Query executed: SELECT ..." << std::endl;
             }
 
             else

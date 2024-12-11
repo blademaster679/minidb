@@ -25,20 +25,22 @@ struct InsertCommand{
     std::vector<std::string> values;
 };
 
-struct SelectCommand{
-    std::string tableName;//主表名
-    std::vector<std::string> columns;//要查询的列名
-    std::string whereClause;//where子句
-    std::vector<std::string> whereConditions;//where子句的条件
-    std::string joinTable;//要连接的表名
-    std::string onCondition;//连接条件
-};
-
 struct Condition{
     std::string column;
     std::string op;
     std::string value;
 };
+
+struct SelectCommand{
+    std::string tableName;//主表名
+    std::vector<std::string> columns;//要查询的列名
+    std::string whereClause;//where子句
+    std::vector<Condition> whereConditions;//where子句的条件
+    std::string joinTable;//要连接的表名
+    std::string onCondition;//连接条件
+};
+
+
 
 struct Join{
     std::string tableName;
@@ -53,10 +55,11 @@ public:
     static CreateTableCommand parseCreateTable(const std::string& sql_command);
     static InsertCommand parseInsert(const std::string& sql_command);
     static SelectCommand parseSelect(const std::string& sql_command);
-    static std::vector<std::string> parseWhereClause(const std::string& sql_command);
-    static Condition parseCondition(const std::string& condition);
+    // static std::vector<std::string> parseWhereClause(const std::string& sql_command);
+    static Condition parseCondition(const std::string& conditionStr);
     static void parseJoinClause(const std::string& sql_command, SelectCommand& sel_command);
     static std::map<std::string, std::string> parseUpdateSet(const std::string& setClause);
     static void parseWhereClause(const std::string& whereClause, std::string& columnName, std::string& value);
+    static std::vector<Condition> parseWhereConditions(const std::string& whereClause);
 };
 #endif

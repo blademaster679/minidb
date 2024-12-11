@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "sql_parser.hpp"  // 用于 SQL 解析
+#include <unordered_map>
 
 class QueryExecutor {
 public:
@@ -18,6 +19,8 @@ public:
 
     // 执行 DELETE 查询
     void executeDelete(const std::string& tableName, const std::string& whereClause);
+
+    bool evaluateWhereConditions(const std::vector<Condition>& conditions, const std::vector<std::string>& row, const std::unordered_map<std::string, size_t>& columnIndexMap);
 };
 
 #endif // QUERY_EXECUTOR_H
